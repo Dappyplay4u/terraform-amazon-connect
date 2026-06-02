@@ -1,0 +1,12 @@
+variable "instance_alias" { type = string }
+variable "identity_management_type" { type = string }
+variable "inbound_calls_enabled" { type = bool }
+variable "outbound_calls_enabled" { type = bool }
+variable "enable_contact_lens" { type = bool }
+variable "enable_auto_resolve_best_voices" { type = bool }
+variable "enable_contactflow_logs" { type = bool }
+variable "enable_call_recording" { type = bool }
+variable "call_recording_bucket" { type = string }
+variable "call_recording_prefix" { type = string }
+variable "reports_bucket" { type = string }
+variable "reports_prefix" { type = string }

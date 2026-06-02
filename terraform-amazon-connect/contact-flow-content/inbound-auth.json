@@ -1,0 +1,13 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "disconnect",
+  "Metadata": { "entryPointPosition": { "x": 40, "y": 40 }, "ActionMetadata": {} },
+  "Actions": [
+    {
+      "Identifier": "disconnect",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    }
+  ]
+}

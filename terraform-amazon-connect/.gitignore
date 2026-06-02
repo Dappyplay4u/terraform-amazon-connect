@@ -1,0 +1,27 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Lambda build artifacts
+modules/lambda-functions/.builds/
+lambda-source/*/node_modules/
+lambda-source/*/package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Secrets — keep tfvars in repo but never commit secrets
+*.secret.tfvars
+*.private.tfvars
