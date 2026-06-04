@@ -1,0 +1,55 @@
+###############################################################################
+# Connect Instance Module — Complete Example
+#
+# Run from this directory:
+#   cp example.tfvars terraform.tfvars
+#   terraform init
+#   terraform plan
+#   terraform apply
+#
+# Resulting instance alias : retail-prod-ue1
+# Resulting name prefix    : retail-connect-prod
+###############################################################################
+
+module "connect" {
+  source = "../../modules/connect_instance"
+
+  # ── Region ──────────────────────────────────────────────────────────────────
+  aws_region = var.aws_region
+
+  # ── Naming ──────────────────────────────────────────────────────────────────
+  # instance_alias → "<project_spec>-<environment>-<aws_region_alias>" e.g. retail-prod-ue1
+  # name_prefix    → "<project_name>-<environment>"                    e.g. retail-connect-prod
+  project_spec     = var.project_spec
+  project_name     = var.project_name
+  environment      = var.environment
+  aws_region_alias = var.aws_region_alias
+
+  # ── Connect feature flags ────────────────────────────────────────────────────
+  auto_resolve_best_voices_enabled = true
+  media_stream_retention_hours     = 24
+  log_retention_days               = 365
+
+  # ── Bring-your-own resources (leave "" to auto-create) ───────────────────────
+  existing_kms_s3_arn              = ""
+  existing_kms_kinesis_arn         = ""
+  existing_kms_connect_arn         = ""
+  existing_s3_call_recordings_id   = ""
+  existing_s3_scheduled_reports_id = ""
+  existing_s3_chat_transcripts_id  = ""
+  existing_kinesis_ctr_arn         = ""
+
+  # ── KMS admin ARNs ───────────────────────────────────────────────────────────
+  key_admin_arns = var.key_admin_arns
+
+  # ── Kinesis settings ─────────────────────────────────────────────────────────
+  kinesis_stream_mode     = "ON_DEMAND"
+  kinesis_retention_hours = 24
+  enable_firehose_ctr     = true
+
+  # ── CloudWatch alarm notifications ───────────────────────────────────────────
+  alarm_sns_topic_arns = var.alarm_sns_topic_arns
+
+  # ── Required tags ────────────────────────────────────────────────────────────
+  tags = local.required_tags
+}

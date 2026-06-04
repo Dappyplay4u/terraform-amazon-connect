@@ -1,0 +1,82 @@
+###############################################################################
+# Connect Instance Module — GitLab CI/CD Pipeline
+#
+# Stages:
+#   validate → plan → apply (manual on main branch only)
+#
+# Required GitLab CI/CD variables (Settings → CI/CD → Variables):
+#   AWS_ACCESS_KEY_ID       — IAM access key for the Terraform deploy role
+#   AWS_SECRET_ACCESS_KEY   — IAM secret key
+#   AWS_DEFAULT_REGION      — target AWS region (e.g. us-east-1)
+#   TF_STATE_BUCKET         — S3 bucket for Terraform state
+#   TF_STATE_LOCK_TABLE     — DynamoDB table for state locking
+###############################################################################
+
+default:
+  image: hashicorp/terraform:1.9
+  before_script:
+    - terraform --version
+    - cd examples/complete
+
+variables:
+  TF_IN_AUTOMATION: "true"
+  TF_CLI_ARGS_init: >-
+    -backend-config="bucket=${TF_STATE_BUCKET}"
+    -backend-config="key=connect/instances/terraform.tfstate"
+    -backend-config="region=${AWS_DEFAULT_REGION}"
+    -backend-config="encrypt=true"
+    -backend-config="dynamodb_table=${TF_STATE_LOCK_TABLE}"
+
+stages:
+  - validate
+  - plan
+  - apply
+
+# ── Validate ──────────────────────────────────────────────────────────────────
+
+fmt:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+validate:
+  stage: validate
+  script:
+    - terraform init -backend=false
+    - terraform validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ── Plan ──────────────────────────────────────────────────────────────────────
+
+plan:
+  stage: plan
+  script:
+    - terraform init
+    - terraform plan -var-file="example.tfvars" -out=tfplan
+  artifacts:
+    paths:
+      - examples/complete/tfplan
+    expire_in: 1 day
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ── Apply ─────────────────────────────────────────────────────────────────────
+
+apply:
+  stage: apply
+  script:
+    - terraform init
+    - terraform apply -auto-approve tfplan
+  dependencies:
+    - plan
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  environment:
+    name: production
